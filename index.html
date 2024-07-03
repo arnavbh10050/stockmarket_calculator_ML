@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stock Prediction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+        }
+        h1 {
+            color: #333;
+        }
+        .container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+        }
+        input[type="file"] {
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        pre {
+            background: #f8f8f8;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Stock Prediction</h1>
+        <input type="file" id="fileInput">
+        <button onclick="uploadData()">Upload and Train</button>
+        <button onclick="predict()">Predict</button>
+        <pre id="output"></pre>
+    </div>
+
+    <script>
+        async function uploadData() {
+            const input = document.getElementById('fileInput');
+            if (input.files.length === 0) {
+                alert('Please select a file!');
+                return;
+            }
+
+            const file = input.files[0];
+            const reader = new FileReader();
+            reader.onload = async function(event) {
+                const data = JSON.parse(event.target.result);
+                const response = await fetch('/train', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                const text = await response.text();
+                document.getElementById('output').innerText = text;
+            };
+            reader.readAsText(file);
+        }
+
+        async function predict() {
+            const response = await fetch('/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({})
+            });
+            const predictions = await response.json();
+            displayPredictions(predictions);
+        }
+
+        function displayPredictions(predictions) {
+            let output = 'Predicted Future Stock Prices:\n\n';
+            predictions.forEach((price, index) => {
+                output += `Day ${index + 1}: ${price}\n`;
+            });
+            document.getElementById('output').innerText = output;
+        }
+    </script>
+</body>
+</html>
